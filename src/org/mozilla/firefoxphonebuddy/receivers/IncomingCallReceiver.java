@@ -18,7 +18,7 @@ import android.widget.Toast;
  */
 public class IncomingCallReceiver extends BroadcastReceiver {
 
-	private PhoneStateListener listener = null;
+	private FPBPhoneStateListener listener = null;
 
 	/* (non-Javadoc)
 	 * @see android.content.BroadcastReceiver#onReceive(android.content.Context, android.content.Intent)
@@ -28,6 +28,8 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 		if (this.listener == null) {
 			this.listener = new FPBPhoneStateListener(context);
 		}
+		this.listener.setIntent(intent);
+
         String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
         Toast.makeText(context, "Incoming Phone State: " + state, Toast.LENGTH_LONG).show();
 
@@ -36,11 +38,16 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 
         TelephonyManager mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)) {
+        	// incoming phone number ringing
             mTelephonyManager.listen(this.listener, PhoneStateListener.LISTEN_CALL_STATE);
         } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
+        	// This call has ended, user hung up
         	mTelephonyManager.listen(this.listener, PhoneStateListener.LISTEN_NONE);
         } else if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(state)) {
-        
+        	// This is an outgoing call
+        	if (number == null) {
+        		mTelephonyManager.listen(this.listener, PhoneStateListener.LISTEN_NONE);
+        	}
         }
 	}
 }
